@@ -70,11 +70,11 @@ namespace Google.Play.Instant.Editor.Internal
                     () => EditorUserBuildSettings.SwitchActiveBuildTarget(
                         BuildTargetGroup.Android, BuildTarget.Android)),
 
-                // We require Gradle for 2018.1+, but hide this policy for 2019.1+ since Gradle is the only option.
-#if UNITY_2018_1_OR_NEWER && !UNITY_2019_1_OR_NEWER
+                // We require Gradle for all versions, but hide this policy for 2019.1+ since Gradle is the only option.
+#if !UNITY_2019_1_OR_NEWER
                 new PlayInstantSettingPolicy(
                     "Android build system should be Gradle",
-                    "Required for IPostGenerateGradleAndroidProject and APK Signature Scheme v2.",
+                    "Required for APK Signature Scheme v2.",
                     () => EditorUserBuildSettings.androidBuildSystem == AndroidBuildSystem.Gradle,
                     () =>
                     {
@@ -141,7 +141,6 @@ namespace Google.Play.Instant.Editor.Internal
                         return true;
                     }),
 
-#if UNITY_2017_2_OR_NEWER
                 new PlayInstantSettingPolicy(
                     "Android Multithreaded Rendering should be disabled",
                     MultithreadedRenderingDescription,
@@ -151,17 +150,6 @@ namespace Google.Play.Instant.Editor.Internal
                         PlayerSettings.SetMobileMTRendering(BuildTargetGroup.Android, false);
                         return true;
                     })
-#else
-                new PlayInstantSettingPolicy(
-                    "Mobile Multithreaded Rendering should be disabled",
-                    MultithreadedRenderingDescription,
-                    () => !PlayerSettings.mobileMTRendering,
-                    () =>
-                    {
-                        PlayerSettings.mobileMTRendering = false;
-                        return true;
-                    })
-#endif
             };
         }
 
@@ -170,19 +158,21 @@ namespace Google.Play.Instant.Editor.Internal
         /// </summary>
         public static IEnumerable<PlayInstantSettingPolicy> GetRecommendedPolicies()
         {
-            var policies = new List<PlayInstantSettingPolicy>
-            {
-                new PlayInstantSettingPolicy(
-                    "Android minSdkVersion should be 21",
-                    "Lower than 21 is fine, though 21 is the minimum supported by Google Play Instant.",
-                    // TODO: consider prompting if strictly greater than 21 to say that 21 enables wider reach
-                    () => (int) PlayerSettings.Android.minSdkVersion >= 21,
-                    () =>
-                    {
-                        PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel21;
-                        return true;
-                    })
-            };
+            var policies = new List<PlayInstantSettingPolicy>();
+
+            // TODO(b/190117219): Update to handle the latest Unity versions.
+#if !UNITY_2021_2_OR_NEWER
+            policies.Add(new PlayInstantSettingPolicy(
+                "Android minSdkVersion should be 21",
+                "Lower than 21 is fine, though 21 is the minimum supported by Google Play Instant.",
+                () => (int) PlayerSettings.Android.minSdkVersion >= 21,
+                () =>
+                {
+                    PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel21;
+                    return true;
+                })
+            );
+#endif
 
             // For the purpose of switching to .NET 2.0 Subset, it's sufficient to check #if NET_2_0. However, it would
             // be confusing if the option disappeared after clicking the Update button, so we also check NET_2_0_SUBSET.
