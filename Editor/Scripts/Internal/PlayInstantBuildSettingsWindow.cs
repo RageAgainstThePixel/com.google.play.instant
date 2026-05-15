@@ -26,7 +26,7 @@ namespace Google.Play.Instant.Editor.Internal
     {
         public const string WindowTitle = "Play Instant Build Settings";
         private const int WindowMinWidth = 400;
-        private const int WindowMinHeight = 240;
+        private const int WindowMinHeight = 260;
         private const int FieldWidth = 175;
         private static readonly string[] PlatformOptions = {"Installed", "Instant"};
 
